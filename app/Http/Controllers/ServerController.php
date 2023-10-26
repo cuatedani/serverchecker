@@ -5,27 +5,29 @@ namespace App\Http\Controllers;
 use App\Models\Server;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use DateTime;
+use Acamposm\Ping\Ping;
+use Acamposm\Ping\PingCommandBuilder;
 
 class ServerController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra los servidores.
      */
     public function index()
     {
         // Obtener el ID del usuario
         $userId = Auth::id();
 
-        // Obtén los servidores relacionados con el ID del usuario
-        $servers = Server::where('user_id', $userId)->latest()->get();
+        // Obtén los servidores relacionados con el ID del usuario que no están eliminados
+        $servers = Server::where('user_id', $userId)->where('status', '!=', 'Eliminado')->latest()->get();
 
         // Pasa los servidores a la vista
-        return view('servers', compact('servers'), ['servers' => $servers]);
+        return view('servers', compact('servers'));
     }
 
-
     /**
-     * Show the form for creating a new resource.
+     * Muestra interfaz de creacion.
      */
     public function create()
     {
@@ -33,24 +35,24 @@ class ServerController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Guarda nuevo servidor en database.
      */
     public function store(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'min:5', 'max:25'],
+            'name' => ['required', 'string', 'min:4', 'max:25'],
             'ip_part1' => ['required', 'numeric', 'between:1,255'],
             'ip_part2' => ['required', 'numeric', 'between:0,255'],
             'ip_part3' => ['required', 'numeric', 'between:0,255'],
             'ip_part4' => ['required', 'numeric', 'between:0,255'],
-            'description' => ['string', 'min:10', 'max:200', 'nullable'],
+            'description' => ['string', 'min:5', 'max:200', 'nullable'],
         ]);
 
         $userId = Auth::id();
 
         $ipComplete = $request->ip_part1 . '.' . $request->ip_part2 . '.' . $request->ip_part3 . '.' . $request->ip_part4;
 
-        $description = $request->filled('description') ? $request->description : 'Servidor a Monitorear';
+        $description = $request->description;
 
         $server = Server::create([
             'servername' => $request->name,
@@ -62,61 +64,167 @@ class ServerController extends Controller
         return redirect()->route('servers.show');
     }
 
-
     /**
-     * Display the specified resource.
-     */
-    public function show(Server $server)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
+     * Obtener datos para editar.
      */
     public function edit($id)
     {
+        // Obtén los datos del servidor según el ID ($id)
         $server = Server::findOrFail($id);
-        return view('editserver', compact('server'));
+
+        // Devuelve el servidor y sus valores en formato JSON
+        return response()->json(['server' => $server]);
     }
 
 
     /**
-     * Update the specified resource in storage.
+     * Actualizar datos.
      */
     public function update(Request $request, $id)
     {
+
         $request->validate([
-            'name' => ['required', 'string', 'min:5', 'max:25'],
+            'name' => ['required', 'string', 'min:4', 'max:30'],
             'ip_part1' => ['required', 'numeric', 'between:1,255'],
             'ip_part2' => ['required', 'numeric', 'between:0,255'],
             'ip_part3' => ['required', 'numeric', 'between:0,255'],
             'ip_part4' => ['required', 'numeric', 'between:0,255'],
-            'description' => ['required', 'string', 'min:10', 'max:200'],
+            'description' => ['required', 'string', 'min:5', 'max:200'],
         ]);
 
         // Obtener el servidor
         $server = Server::find($id);
 
-        // Actualizar los atributos
-        $server->servername = $request->name;
-        $ipComplete = $request->ip_part1 . '.' . $request->ip_part2 . '.' . $request->ip_part3 . '.' . $request->ip_part4;
-        $server->serverip = $ipComplete;
-        $server->description = $request->description;
+        if ($server) {
+            // Actualizar los atributos
+            $server->servername = $request->name;
+            $ipComplete = $request->ip_part1 . '.' . $request->ip_part2 . '.' . $request->ip_part3 . '.' . $request->ip_part4;
+            $server->serverip = $ipComplete;
+            $server->description = $request->description;
+            $server->status = 'Desconocido';
+            $server->statustime = 'Desconocido';
+            $server->lastcheck = 'Desconocido';
+            $server->lastresponse = 'Desconocido';
 
-        // Guardar
-        $server->save();
+            // Guardar los cambios
+            $server->save();
 
-        return redirect()->route('servers.show');
+            // Respondemos con una respuesta JSON
+            return response()->json(['success' => true, 'message' => 'El servidor se ha actualizado correctamente']);
+        } else {
+            // Si no se encuentra el servidor, respondemos con un error
+            return response()->json(['success' => false, 'message' => 'No se pudo encontrar el servidor'], 404);
+        }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Comprueba Todos los servidores.
+     */
+    public function checkall()
+    {
+    }
+
+    /**
+     * Comprueba Todos los servidores de un usuario.
+     */
+    public function checkone()
+    {
+        // Obtener el ID del usuario
+        $userId = Auth::id();
+
+        // Obtén los servidores relacionados con el ID del usuario que no están eliminados
+        $servers = Server::where('user_id', $userId)->where('status', '!=', 'Eliminado')->get();
+
+        foreach ($servers as $server) {
+            // Realiza la lógica de comprobación para cada servidor
+            $isServerActive = $this->checkServerStatus($server->serverip);
+
+            if ($isServerActive) {
+                if ($server->status == 'Activo') {
+                    // Cuando revisa y el servidor sigue activo
+                    $server->lastcheck = now();
+
+                    $datetime1 = new DateTime($server->lastcheck);
+                    $datetime2 = new DateTime($server->lastresponse);
+                    $interval = $datetime1->diff($datetime2);
+                    // Obtén la diferencia en días, horas, minutos y segundos
+                    $diferencia = $interval->format('%d Días, %h Horas, %i Minutos, %s Segundos');
+
+                    $server->statustime = $diferencia;
+                } else {
+                    // Cuando revisa y el servidor recién está activo
+                    $server->status = 'Activo';
+                    $server->lastcheck = now();
+                    $server->lastresponse = now();
+                    $server->statustime = "0 Minutos";
+                }
+            } else {
+                if ($server->status == 'Inactivo') {
+                    // Cuando revisa y el servidor sigue inactivo
+                    $server->lastcheck = now();
+
+                    $datetime1 = new DateTime($server->lastcheck);
+                    $datetime2 = new DateTime($server->lastresponse);
+                    $interval = $datetime1->diff($datetime2);
+                    // Obtén la diferencia en días, horas, minutos y segundos
+                    $diferencia = $interval->format('%d Días, %h Horas, %i Minutos, %s Segundos');
+
+                    $server->statustime = $diferencia;
+                } else {
+                    // Cuando revisa y el servidor está inactivo
+                    $server->status = 'Inactivo';
+                    $server->lastcheck = now();
+                    $server->lastresponse = now();
+                    $server->statustime = "0 Minutos";
+                }
+            }
+            $server->save(); // Guarda los cambios en la base de datos
+        }
+        // Redirige o responde según tus necesidades
+        return response()->json(['success' => true, 'message' => 'Se han comprobado los servidores']);
+    }
+
+    private function checkServerStatus($serverIP)
+    {
+
+        $host = $serverIP;
+
+        $output = [];
+        $result = -1;
+
+        // Ejecuta el comando de ping en el sistema
+        exec("ping " . escapeshellarg($host), $output, $result);
+
+        // Verifica el resultado del ping
+        if ($result === 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Elimina de vista un elemento.
      */
     public function destroy($id)
     {
-        Server::eliminar($id);
+        // Encuentra el servidor por su ID
+        $server = Server::find($id);
 
-        return redirect()->route('servers.show')->with('success', 'Servidor eliminado correctamente');
+        // Verifica si se encontró el servidor
+        if ($server) {
+
+            // Actualizar los atributos
+            $server->status = 'Eliminado';
+
+            // Guardar los cambios
+            $server->save();
+
+            // Redirecciona a la vista de servidores con un mensaje de éxito
+            return redirect()->route('servers.show')->with('success', 'Servidor eliminado correctamente');
+        } else {
+            // Redirecciona con un mensaje de error si el servidor no se encontró
+            return redirect()->route('servers.show')->with('error', 'No se encontró el servidor');
+        }
     }
 }

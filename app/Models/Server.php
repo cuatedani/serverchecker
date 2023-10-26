@@ -35,7 +35,7 @@ class Server extends Model
         return self::create([
             'servername' => $data['servername'],
             'serverip' => $data['serverip'],
-            'description' => $data['description'] ?? 'Servidor',
+            'description' => $data['description'] ?? 'Servidor a Monitorear',
             'status' => 'Desconocido',
             'statustime' => 'Desconocido',
             'lastcheck' => 'Desconocido',

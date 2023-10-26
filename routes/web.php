@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServerController;
 use App\Http\Controllers\UserController;
+use App\Models\Server;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -22,9 +23,11 @@ Route::middleware('auth', 'verified')->group(function () {
     //Rutas de Servers
     Route::get('/server/add', [ServerController::class, 'create'])->name('server.create');
     Route::post('/server/add', [ServerController::class, 'store'])->name('server.store');
-    Route::delete('/server/{id}', [ServerController::class, 'destroy'])->name('server.destroy');
+    Route::post('/server/delete/{id}', [ServerController::class, 'destroy'])->name('server.destroy');
     Route::get('/server/edit/{id}', [ServerController::class, 'edit'])->name('server.edit');
-    Route::put('/server/edit/{id}', [ServerController::class, 'update'])->name('server.update');
+    Route::post('/server/edit/{id}', [ServerController::class, 'update'])->name('server.update');
+    Route::get('/server/checkall', [ServerController::class, 'checkall'])->name('server.checkall');
+    Route::get('/server/checkone', [ServerController::class, 'checkone'])->name('server.checkone');
 });
 
 //Rutas Administrador

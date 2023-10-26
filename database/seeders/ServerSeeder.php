@@ -11,12 +11,22 @@ class ServerSeeder extends Seeder
     {
         // Crear registros de servidores
         Server::create([
-            'servername' => 'Servidor 1',
+            'servername' => 'Servidor Desconocido',
             'serverip' => '192.168.1.1',
             'user_id' => 3,  // ID de un usuario existente en la tabla 'users'
         ]);
-
-        // Agrega más registros según sea necesario
+        Server::create([
+            'servername' => 'Servidor Online',
+            'serverip' => '192.168.1.2',
+            'status' => 'Activo',
+            'user_id' => 3,  // ID de un usuario existente en la tabla 'users'
+        ]);
+        Server::create([
+            'servername' => 'Servidor Offline',
+            'serverip' => '192.168.1.3',
+            'status' => 'Inactivo',
+            'user_id' => 3,  // ID de un usuario existente en la tabla 'users'
+        ]);
     }
 }
 
