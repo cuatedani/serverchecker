@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Server;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
 use DateTime;
-use Acamposm\Ping\Ping;
-use Acamposm\Ping\PingCommandBuilder;
 
 class ServerController extends Controller
 {
@@ -142,15 +142,19 @@ class ServerController extends Controller
             if ($isServerActive) {
                 if ($server->status == 'Activo') {
                     // Cuando revisa y el servidor sigue activo
-                    $server->lastcheck = now();
+                    try {
+                        $server->lastcheck = now();
 
-                    $datetime1 = new DateTime($server->lastcheck);
-                    $datetime2 = new DateTime($server->lastresponse);
-                    $interval = $datetime1->diff($datetime2);
-                    // Obtén la diferencia en días, horas, minutos y segundos
-                    $diferencia = $interval->format('%d Días, %h Horas, %i Minutos, %s Segundos');
-
-                    $server->statustime = $diferencia;
+                        $datetime1 = new DateTime($server->lastcheck);
+                        $datetime2 = new DateTime($server->lastresponse);
+                        $interval = $datetime1->diff($datetime2, true);
+                        // Obtén la diferencia en días, horas, minutos y segundos
+                        $diferencia = $interval->format("%a Dias, %H Horas, Minutos %I");
+                        Log::error('Diferencia: ' . $diferencia);
+                        $server->statustime = $diferencia;
+                    } catch (\Exception $e) {
+                        Log::error('Ocurrió una excepción: ' . $e->getMessage());
+                    }
                 } else {
                     // Cuando revisa y el servidor recién está activo
                     $server->status = 'Activo';
@@ -161,15 +165,19 @@ class ServerController extends Controller
             } else {
                 if ($server->status == 'Inactivo') {
                     // Cuando revisa y el servidor sigue inactivo
-                    $server->lastcheck = now();
+                    try {
+                        $server->lastcheck = now();
 
-                    $datetime1 = new DateTime($server->lastcheck);
-                    $datetime2 = new DateTime($server->lastresponse);
-                    $interval = $datetime1->diff($datetime2);
-                    // Obtén la diferencia en días, horas, minutos y segundos
-                    $diferencia = $interval->format('%d Días, %h Horas, %i Minutos, %s Segundos');
-
-                    $server->statustime = $diferencia;
+                        $datetime1 = new DateTime($server->lastcheck);
+                        $datetime2 = new DateTime($server->lastresponse);
+                        $interval = $datetime1->diff($datetime2, true);
+                        // Obtén la diferencia en días, horas, minutos y segundos
+                        $diferencia = $interval->format("%a Dias, %H Horas, Minutos %I");
+                        Log::error('Diferencia: ' . $diferencia);
+                        $server->statustime = $diferencia;
+                    } catch (\Exception $e) {
+                        Log::error('Ocurrió una excepción: ' . $e->getMessage());
+                    }
                 } else {
                     // Cuando revisa y el servidor está inactivo
                     $server->status = 'Inactivo';
@@ -186,21 +194,26 @@ class ServerController extends Controller
 
     private function checkServerStatus($serverIP)
     {
-
-        $host = $serverIP;
-
-        $output = [];
-        $result = -1;
-
-        // Ejecuta el comando de ping en el sistema
-        exec("ping " . escapeshellarg($host), $output, $result);
-
-        // Verifica el resultado del ping
-        if ($result === 0) {
-            return true;
-        } else {
-            return false;
+        try {
+            $timeout = 5; // Tiempo de espera en segundos
+            $command = "ping -n 1 -w $timeout $serverIP"; // Comando de ping de Windows
+            //$command = "ping -n 1 -W $timeout $serverIP"; Comando de ping de Ubuntu
+        
+            // Ejecuta el comando de ping en el sistema
+            exec($command, $output, $result);
+        
+            // Verifica el resultado del ping
+            if ($result === 0) {
+                // El servidor respondió al ping
+                return true;
+            } else {
+                // El servidor no respondió al ping
+                return false;
+            }
+        } catch (\Exception $e) {
+            Log::error('Ocurrió una excepción: ' . $e->getMessage());
         }
+        
     }
 
     /**

@@ -12,7 +12,7 @@
                     <a href="{{ route('server.create') }}" class="btn btn-primary">{{ __('Añadir') }}</a>
                 </x-primary-button>
                 <x-primary-button id="btn-check-one">{{ __('Check') }}</x-primary-button>
-                <x-primary-button id="btn-check-one">{{ __('Intervalo  V') }}</x-primary-button>
+                <x-primary-button id="btn-check-all">{{ __('Intervalo  V') }}</x-primary-button>
             </div>
         </div>
 
@@ -131,7 +131,7 @@
                                             <path d="M3 3l18 18" />
                                           </svg>
                                     </td>
-                                    <td class="py-2 text-center">Desde: {{ $server->statustime }}</td>
+                                    <td class="py-2 text-center">{{ $server->statustime }}</td>
                                     <td class="py-2 text-center">{{ $server->lastcheck }}</td>
                                     <td class="py-2 text-center">{{ $server->lastresponse }}</td>
                                     <td class="py-2 text-center flex justify-center items-center">

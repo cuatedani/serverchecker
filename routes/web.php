@@ -2,8 +2,6 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServerController;
-use App\Http\Controllers\UserController;
-use App\Models\Server;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
