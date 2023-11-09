@@ -5,7 +5,7 @@ $(document).ready(function () {
         // Realizar una solicitud AJAX para obtener los datos del servidor
         $.ajax({
             type: 'GET',
-            url: '/server/edit/' + serverId,
+            url: '/server/get/' + serverId,
             dataType: 'json',
             success: function (data) {
                 if (data.server) {
@@ -15,24 +15,24 @@ $(document).ready(function () {
                     const form = `
                         <form id="edit-server-form" method="POST"  action="/server/edit/${server.id}">
                         <div class="mt-4">
-                            <label for="name">Nombre del Servidor:</label>
-                            <input id="name" class="block mt-1 w-full" type="text" name="name" value="${server.servername}" required autofocus autocomplete="name" />
+                            <label for="name" class="form-label">Nombre del Servidor:</label>
+                            <input id="name" class="form-control" type="text" name="name" value="${server.servername}" required autofocus autocomplete="name" />
                         </div>
                             <div class="mt-4">
-                                <label for="serverip">IP del Servidor:</label>
+                                <label for="serverip" class="form-label">IP del Servidor:</label>
                             </div>
-                            <div>
-                                <input class="mr-2" type="number" name="ip_part1" value="${ip_parts[0]}" min="1" max="255" required />
+                            <div class="input-group">
+                                <input class="form-control" type="number" name="ip_part1" value="${ip_parts[0]}" min="1" max="255" required />
                                 <label>.</label>
-                                <input class="mr-2" type="number" name="ip_part2" value="${ip_parts[1]}" min="0" max="255" required />
+                                <input class="form-control" type="number" name="ip_part2" value="${ip_parts[1]}" min="0" max="255" required />
                                 <label>.</label>
-                                <input class="mr-2" type="number" name="ip_part3" value="${ip_parts[2]}" min="0" max="255" required />
+                                <input class="form-control" type="number" name="ip_part3" value="${ip_parts[2]}" min="0" max="255" required />
                                 <label>.</label>
-                                <input class="mr-2" type="number" name="ip_part4" value="${ip_parts[3]}" min="0" max="255" required />
+                                <input class="form-control" type="number" name="ip_part4" value="${ip_parts[3]}" min="0" max="255" required />
                             </div>
                             <div class="mt-4">
-                                <label for="description">Descripción:</label>
-                                <textarea id="description" class="block mt-1 w-full" name="description" rows="3">${server.description}</textarea>
+                                <label for="description" class="form-label">Descripción:</label>
+                                <textarea id="description" minlength="5" class="form-control" name="description" rows="3">${server.description}</textarea>
                             </div>
                         </form>
                     `;

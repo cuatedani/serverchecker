@@ -1,26 +1,11 @@
 $(document).ready(function () {
-    // Agrega un controlador de clic para el botón "Temporizador"
-    $('#btn-check-one').click(function () {
-
-        // Muestra un SweetAlert de "Revisando..."
-        Swal.fire({
-            title: 'Revisando...',
-            imageUrl: 'https://assets-v2.lottiefiles.com/a/31b6eec0-1171-11ee-a93a-c70638485918/0SoVOdzJAg.gif',
-            imageWidth: 400,
-            imageHeight: 400,
-            imageAlt: 'Loading',
-            allowOutsideClick: false, // Evita que el usuario haga clic fuera del cuadro
-            allowEscapeKey: false, // Evita que el usuario cierre el cuadro presionando Esc
-            showConfirmButton: false, // No muestra el botón de confirmación
-            onBeforeOpen: () => {
-                Swal.showLoading(); // Muestra el ícono de carga
-            }
-        });
+    $('.btn-checkone').click(function () {
+        const serverId = $(this).data('server-id');
 
         // Realiza una petición GET a la ruta 'server.checkone'
         $.ajax({
             type: 'GET',
-            url: '/server/checkone',
+            url: '/server/checkone/' + serverId,
             success: function (data) {
                 // Cierra el SweetAlert de "Revisando..." cuando se completa la petición
                 Swal.close();

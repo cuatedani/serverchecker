@@ -20,7 +20,11 @@ class ServerController extends Controller
         $userId = Auth::id();
 
         // Obtén los servidores relacionados con el ID del usuario que no están eliminados
-        $servers = Server::where('user_id', $userId)->where('status', '!=', 'Eliminado')->latest()->get();
+        $servers = Server::where('user_id', $userId)
+            ->where('status', '!=', 'Eliminado')
+            ->orderBy('status', 'desc')
+            ->latest()
+            ->get();
 
         // Pasa los servidores a la vista
         return view('servers', compact('servers'));
@@ -65,9 +69,9 @@ class ServerController extends Controller
     }
 
     /**
-     * Obtener datos para editar.
+     * Obtener datos de un servidor.
      */
-    public function edit($id)
+    public function indexone($id)
     {
         // Obtén los datos del servidor según el ID ($id)
         $server = Server::findOrFail($id);
@@ -120,14 +124,14 @@ class ServerController extends Controller
     /**
      * Comprueba Todos los servidores.
      */
-    public function checkall()
+    public function checkglobal()
     {
     }
 
     /**
      * Comprueba Todos los servidores de un usuario.
      */
-    public function checkone()
+    public function checkall()
     {
         // Obtener el ID del usuario
         $userId = Auth::id();
@@ -149,7 +153,7 @@ class ServerController extends Controller
                         $datetime2 = new DateTime($server->lastresponse);
                         $interval = $datetime1->diff($datetime2, true);
                         // Obtén la diferencia en días, horas, minutos y segundos
-                        $diferencia = $interval->format("%a Dias, %H Horas, Minutos %I");
+                        $diferencia = $interval->format("%a Dias, %H Horas, %I Minutos");
                         Log::error('Diferencia: ' . $diferencia);
                         $server->statustime = $diferencia;
                     } catch (\Exception $e) {
@@ -172,7 +176,7 @@ class ServerController extends Controller
                         $datetime2 = new DateTime($server->lastresponse);
                         $interval = $datetime1->diff($datetime2, true);
                         // Obtén la diferencia en días, horas, minutos y segundos
-                        $diferencia = $interval->format("%a Dias, %H Horas, Minutos %I");
+                        $diferencia = $interval->format("%a Dias, %H Horas, %I Minutos");
                         Log::error('Diferencia: ' . $diferencia);
                         $server->statustime = $diferencia;
                     } catch (\Exception $e) {
@@ -192,16 +196,79 @@ class ServerController extends Controller
         return response()->json(['success' => true, 'message' => 'Se han comprobado los servidores']);
     }
 
+    /**
+     * Checar uno 
+     */
+    public function checkone(Request $request, $id)
+    {
+
+        $server = Server::find($id);
+        // Realiza la lógica de comprobación para cada servidor
+        $isServerActive = $this->checkServerStatus($server->serverip);
+
+        if ($isServerActive) {
+            if ($server->status == 'Activo') {
+                // Cuando revisa y el servidor sigue activo
+                try {
+                    $server->lastcheck = now();
+
+                    $datetime1 = new DateTime($server->lastcheck);
+                    $datetime2 = new DateTime($server->lastresponse);
+                    $interval = $datetime1->diff($datetime2, true);
+                    // Obtén la diferencia en días, horas, minutos y segundos
+                    $diferencia = $interval->format("%a Dias, %H Horas, Minutos %I");
+                    Log::error('Diferencia: ' . $diferencia);
+                    $server->statustime = $diferencia;
+                } catch (\Exception $e) {
+                    Log::error('Ocurrió una excepción: ' . $e->getMessage());
+                }
+            } else {
+                // Cuando revisa y el servidor recién está activo
+                $server->status = 'Activo';
+                $server->lastcheck = now();
+                $server->lastresponse = now();
+                $server->statustime = "0 Minutos";
+            }
+        } else {
+            if ($server->status == 'Inactivo') {
+                // Cuando revisa y el servidor sigue inactivo
+                try {
+                    $server->lastcheck = now();
+
+                    $datetime1 = new DateTime($server->lastcheck);
+                    $datetime2 = new DateTime($server->lastresponse);
+                    $interval = $datetime1->diff($datetime2, true);
+                    // Obtén la diferencia en días, horas, minutos y segundos
+                    $diferencia = $interval->format("%a Dias, %H Horas, Minutos %I");
+                    Log::error('Diferencia: ' . $diferencia);
+                    $server->statustime = $diferencia;
+                } catch (\Exception $e) {
+                    Log::error('Ocurrió una excepción: ' . $e->getMessage());
+                }
+            } else {
+                // Cuando revisa y el servidor está inactivo
+                $server->status = 'Inactivo';
+                $server->lastcheck = now();
+                $server->lastresponse = now();
+                $server->statustime = "0 Minutos";
+            }
+        }
+        $server->save(); // Guarda los cambios en la base de datos
+        // Redirige o responde según tus necesidades
+        return response()->json(['success' => true, 'message' => 'Se ha comprobado el servidor']);
+    }
+
+    //Metodo para comprobar estado de servidores
     private function checkServerStatus($serverIP)
     {
         try {
-            $timeout = 5; // Tiempo de espera en segundos
+            $timeout = 5000; // Tiempo de espera en milisegundos
             $command = "ping -n 1 -w $timeout $serverIP"; // Comando de ping de Windows
             //$command = "ping -n 1 -W $timeout $serverIP"; Comando de ping de Ubuntu
-        
+
             // Ejecuta el comando de ping en el sistema
             exec($command, $output, $result);
-        
+
             // Verifica el resultado del ping
             if ($result === 0) {
                 // El servidor respondió al ping
@@ -213,7 +280,6 @@ class ServerController extends Controller
         } catch (\Exception $e) {
             Log::error('Ocurrió una excepción: ' . $e->getMessage());
         }
-        
     }
 
     /**

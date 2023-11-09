@@ -851,7 +851,7 @@
         @endif
 
         <div>
-            <img src="{{ asset('images/logo-32x32.png') }}" alt="Logo Server Checker" class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200">
+            <img src="{{ asset('images/logo-310x310.png') }}" alt="Logo Server Checker" class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200">
             <p>Bienvenido a ServerChecker</p>
         </div>
 
