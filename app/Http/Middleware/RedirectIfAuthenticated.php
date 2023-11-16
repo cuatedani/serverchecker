@@ -20,7 +20,7 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                return redirect()->route('servers.show')->with('error', 'Ya estás autenticado. No puedes acceder a la página de inicio de sesión.');
+                return redirect()->route('servers.show')->with('error', 'Ya estás autenticado. No puedes acceder a la página.');
             }
         }
 

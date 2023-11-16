@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
             'name' => 'admin',
             'email' => 'admin@correo.com',
             'password' => Hash::make('password'),
-            'phone' => '3271094465',
+            'phone' => '1234567890',
             'permissions' => 'admin',
         ]);
 

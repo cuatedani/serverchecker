@@ -11,6 +11,18 @@ use DateTime;
 
 class ServerController extends Controller
 {
+
+    public function redirectIfAuthenticated()
+    {
+        if (auth()->check()) {
+            // Si el usuario está autenticado, redirige a una ruta diferente
+            return redirect()->route('servers.show');
+        }
+
+        // Si el usuario es un invitado, continúa con la lógica normal
+        return $this->index();
+    }
+
     /**
      * Muestra los servidores.
      */
@@ -73,12 +85,25 @@ class ServerController extends Controller
      */
     public function indexone($id)
     {
-        // Obtén los datos del servidor según el ID ($id)
-        $server = Server::findOrFail($id);
+        $userId = Auth::id();
 
-        // Devuelve el servidor y sus valores en formato JSON
-        return response()->json(['server' => $server]);
+        // Obtén los datos del servidor según el ID ($id)
+        $server = Server::find($id);
+
+        if (!$server) {
+            // Si no se encuentra el servidor, retorna un error 404
+            return response()->json(['error' => 'Servidor no encontrado'], 404);
+        }
+
+        if ($userId == $server->user_id) {
+            // Devuelve el servidor y sus valores en formato JSON
+            return response()->json(['server' => $server]);
+        } else {
+            // Retorna un error que diga "No puedes acceder a esa información"
+            return response()->json(['error' => 'No puedes acceder a esta información'], 403);
+        }
     }
+
 
 
     /**
@@ -125,13 +150,6 @@ class ServerController extends Controller
      * Comprueba Todos los servidores.
      */
     public function checkglobal()
-    {
-    }
-
-    /**
-     * Comprueba Todos los servidores de un usuario.
-     */
-    public function checkall()
     {
         // Obtener el ID del usuario
         $userId = Auth::id();
@@ -196,6 +214,7 @@ class ServerController extends Controller
         return response()->json(['success' => true, 'message' => 'Se han comprobado los servidores']);
     }
 
+
     /**
      * Checar uno 
      */
@@ -216,7 +235,7 @@ class ServerController extends Controller
                     $datetime2 = new DateTime($server->lastresponse);
                     $interval = $datetime1->diff($datetime2, true);
                     // Obtén la diferencia en días, horas, minutos y segundos
-                    $diferencia = $interval->format("%a Dias, %H Horas, Minutos %I");
+                    $diferencia = $interval->format("%a Dias, %H Horas, %I Minutos");
                     Log::error('Diferencia: ' . $diferencia);
                     $server->statustime = $diferencia;
                 } catch (\Exception $e) {
@@ -239,7 +258,7 @@ class ServerController extends Controller
                     $datetime2 = new DateTime($server->lastresponse);
                     $interval = $datetime1->diff($datetime2, true);
                     // Obtén la diferencia en días, horas, minutos y segundos
-                    $diferencia = $interval->format("%a Dias, %H Horas, Minutos %I");
+                    $diferencia = $interval->format("%a Dias, %H Horas, %I Minutos");
                     Log::error('Diferencia: ' . $diferencia);
                     $server->statustime = $diferencia;
                 } catch (\Exception $e) {
@@ -255,7 +274,7 @@ class ServerController extends Controller
         }
         $server->save(); // Guarda los cambios en la base de datos
         // Redirige o responde según tus necesidades
-        return response()->json(['success' => true, 'message' => 'Se ha comprobado el servidor']);
+        return response()->json(['success' => true, 'message' => 'Se ha comprobado el servidor', 'estatus' => $server->status,'info1'=>$server->serverip,'info2'=>$server->statustime ,'info3'=>$server->lastcheck,'info4'=>$server->lastresponse,'info5'=>$server->description]);
     }
 
     //Metodo para comprobar estado de servidores
@@ -263,7 +282,7 @@ class ServerController extends Controller
     {
         try {
             $timeout = 5000; // Tiempo de espera en milisegundos
-            $command = "ping -n 1 -w $timeout $serverIP"; // Comando de ping de Windows
+            $command = "ping -n 2 -w $timeout $serverIP"; // Comando de ping de Windows
             //$command = "ping -n 1 -W $timeout $serverIP"; Comando de ping de Ubuntu
 
             // Ejecuta el comando de ping en el sistema

@@ -13,20 +13,35 @@
     <!-- Favicons -->
     <link href="{{ asset('images/logo-32x32.png') }}" rel="icon">
 
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+
     <!-- Google Fonts -->
     <link href="https://fonts.gstatic.com" rel="preconnect">
     <link
         href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
         rel="stylesheet">
+
     <!--iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <!--Alert-->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Scripts -->
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+
+    <!--Toast-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.css"
+        integrity="sha512-3pIirOrwegjM6erE5gPSwkUzO+3cTjpnV9lexlNZqvupR64iZBnOOTiiLPb9M36zpMScbmUNIcHUqKD47M719g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <style>
+            .pulse {
+            animation: pulse 1s infinite;
+            }
+
+            @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+            }
+        </style>
 </head>
 
-<body >
+<body>
     <header>
         <nav class="navbar navbar-dark bg-dark" aria-label="Dark navbar">
             <div>
@@ -42,9 +57,12 @@
                     aria-labelledby="offcanvasNavbarDarkLabel">
                     <div class="offcanvas-header">
                         <div class="d-flex align-items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="currentColor" alt="Logo Server Checker" style="color: white" class="bi bi-pc me-2" viewBox="0 0 16 16">
-                                <path d="M5 0a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1H5Zm.5 14a.5.5 0 1 1 0 1 .5.5 0 0 1 0-1Zm2 0a.5.5 0 1 1 0 1 .5.5 0 0 1 0-1ZM5 1.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5ZM5.5 3h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1Z"/>
-                              </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="currentColor"
+                                alt="Logo Server Checker" style="color: white" class="bi bi-pc me-2"
+                                viewBox="0 0 16 16">
+                                <path
+                                    d="M5 0a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1H5Zm.5 14a.5.5 0 1 1 0 1 .5.5 0 0 1 0-1Zm2 0a.5.5 0 1 1 0 1 .5.5 0 0 1 0-1ZM5 1.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5ZM5.5 3h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1Z" />
+                            </svg>
                             <h5 class="offcanvas-title" id="offcanvasNavbarDarkLabel">ServerChecker</h5>
                         </div>
                         <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="offcanvas"
@@ -163,8 +181,27 @@
 
     <main class="py-4" style="background: RGBA(128,128,128,0.3); min-height: 100vh;">
         @yield('content')
-        @yield('scripts')
     </main>
+
+    <!-- ServerChecker js Library -->
+    <script type="module" src="{{ asset('js/showinfo.js') }}"></script>
+    <script type="module" src="{{ asset('js/serverdelete.js') }}"></script>
+    <script type="module" src="{{ asset('js/serveredit.js') }}"></script>
+    <script type="module" src="{{ asset('js/serveradd.js') }}"></script>
+    <script type="module" src="{{ asset('js/servercheckone.js') }}"></script>
+    <script type="module" src="{{ asset('js/servercheckall.js') }}"></script>
+
+    <!-- JQuery js Library -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+    <!-- Toast js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"
+        integrity="sha512-VEd+nq25CkR676O+pLBnDW09R7VQX9Mdiij052gVCp5yVH3jGtH70Ho/UUv4mJDsEdTvqRCFZg0NKGiojGnUCw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- SweetAlert js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 
 </html>

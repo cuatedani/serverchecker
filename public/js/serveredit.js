@@ -13,28 +13,73 @@ $(document).ready(function () {
                     const ip_parts = server.serverip.split('.');
 
                     const form = `
-                        <form id="edit-server-form" method="POST"  action="/server/edit/${server.id}">
-                        <div class="mt-4">
-                            <label for="name" class="form-label">Nombre del Servidor:</label>
-                            <input id="name" class="form-control" type="text" name="name" value="${server.servername}" required autofocus autocomplete="name" />
+                        <div class="container">
+                            <form id="edit-server-form">
+                                <!-- Nombre del Servidor -->
+                                <div class="form-group">
+                                    <label class="form-label">Nombre del Servidor : </label>
+                                    <input id="name" class="form-control" type="text" name="name" value="${server.servername}" required autofocus autocomplete="name"
+                                        minlength="4" maxlength="25" />
+                                    <div class="invalid-feedback">Por favor ingresa un nombre de entre 4 y 25 caracteres.</div>
+                                </div>
+            
+                                <!-- Campos de la IP -->
+                                <div class="form-group mt-4">
+                                    <label class="form-label">IP del Servidor : </label>
+                                    <div class="input-group">
+                                        <input class="form-control" type="number" name="ip_part1" value="${ip_parts[0]}" min="1"
+                                            max="255" required />
+                                        <div id="validationip_part1" class="invalid-feedback">
+                                            Por favor ingresa una direccion entre 1 y 255.
+                                        </div>
+                                        <span class="input-group-text" id="basic-addon1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                                class="bi bi-dot" viewBox="0 0 16 16">
+                                                <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"></path>
+                                            </svg>
+                                        </span>
+                                        <input class="form-control" type="number" name="ip_part2" value="${ip_parts[1]}" min="0"
+                                            max="255" required />
+                                        <div id="validationip_part2" class="invalid-feedback">
+                                            Por favor ingresa una direccion entre 0 y 255.
+                                        </div>
+                                        <span class="input-group-text" id="basic-addon1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                                class="bi bi-dot" viewBox="0 0 16 16">
+                                                <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"></path>
+                                            </svg>
+                                        </span>
+                                        <input class="form-control" type="number" name="ip_part3" value="${ip_parts[2]}" min="0"
+                                            max="255" required />
+                                        <div id="validationip_part3" class="invalid-feedback">
+                                            Por favor ingresa una direccion entre 0 y 255.
+                                        </div>
+                                        <span class="input-group-text" id="basic-addon1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                                class="bi bi-dot" viewBox="0 0 16 16">
+                                                <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"></path>
+                                            </svg>
+                                        </span>
+                                        <input class="form-control" type="number" name="ip_part4" value="${ip_parts[3]}" min="0"
+                                            max="255" required />
+                                        <div id="validationip_part4" class="invalid-feedback">
+                                            Por favor ingresa una direccion entre 0 y 255.
+                                        </div>
+                                    </div>
+                                </div>
+            
+                                <!-- Descripción -->
+                                <div class="form-group mt-4">
+                                    <label for="description" class="form-label"> Descripción : </label>
+                                    <textarea id="description" minlength="5" class="form-control" name="description" rows="3" required minlength="4"
+                                        maxlength="200">${server.description}</textarea>
+                                    <div class="invalid-feedback">Por favor ingresa una descripcion de entre 4 y 200 caracteres.</div>
+                                </div>
+                                <div class="col-12 text-center mt-3" style="display: none;" id="submitButtonContainer">
+                                    <button class="btn btn-primary" type="submit" id="submitButton">Editar</button>
+                                </div>
+                            </form>
                         </div>
-                            <div class="mt-4">
-                                <label for="serverip" class="form-label">IP del Servidor:</label>
-                            </div>
-                            <div class="input-group">
-                                <input class="form-control" type="number" name="ip_part1" value="${ip_parts[0]}" min="1" max="255" required />
-                                <label>.</label>
-                                <input class="form-control" type="number" name="ip_part2" value="${ip_parts[1]}" min="0" max="255" required />
-                                <label>.</label>
-                                <input class="form-control" type="number" name="ip_part3" value="${ip_parts[2]}" min="0" max="255" required />
-                                <label>.</label>
-                                <input class="form-control" type="number" name="ip_part4" value="${ip_parts[3]}" min="0" max="255" required />
-                            </div>
-                            <div class="mt-4">
-                                <label for="description" class="form-label">Descripción:</label>
-                                <textarea id="description" minlength="5" class="form-control" name="description" rows="3">${server.description}</textarea>
-                            </div>
-                        </form>
                     `;
 
                     Swal.fire({
@@ -47,74 +92,46 @@ $(document).ready(function () {
                         customClass: {
                             popup: 'edit-sweetalert-popup'
                         },
-                    }).then((result) => {
-                        if (result.isConfirmed) {
+                        preConfirm: () => {
+                            const formElement = document.getElementById('edit-server-form');
+                            const submitButton = document.getElementById('submitButton');
+                            submitButton.click();
+                            if (formElement.checkValidity()) {
+                                const formData = new FormData(formElement);
+                                formData.append('_token', $('input[name="_token"]').val());
 
-                            const formElement = document.getElementById('edit-server-form'); // Obtener el formulario
-
-                            const formData = new FormData(formElement);
-                            var token = $('input[name="_token"]').val();
-                            formData.append('_token', token);
-                            // Realizar una solicitud AJAX para actualizar los datos del servidor
-                            $.ajax({
-                                type: 'POST',
-                                url: `/server/edit/${server.id}`,
-                                data: formData,
-                                dataType: 'json',
-                                processData: false,
-                                contentType: false,
-                                success: function (response) {
+                                return $.ajax({
+                                    type: 'POST',
+                                    url: `/server/edit/${server.id}`,
+                                    data: formData,
+                                    dataType: 'json',
+                                    processData: false,
+                                    contentType: false
+                                }).then((response) => {
                                     if (response.success) {
                                         Swal.fire('Éxito', 'El servidor se ha actualizado correctamente', 'success');
-                                        window.location.reload();
                                     } else {
-                                        if (response.errors) {
-                                            var errorMessages = '';
-                                            for (var fieldName in response.errors) {
-                                                if (response.errors.hasOwnProperty(fieldName)) {
-                                                    var errorMessage = response.errors[fieldName][0];
-                                                    var errorType = fieldName.split('.')[1]; // Obtener el tipo de error
-
-                                                    // Verificar si ya hemos mostrado un error de este tipo
-                                                    if (!shownErrorTypes[errorType]) {
-                                                        errorMessages += errorMessage + '<br>';
-                                                        shownErrorTypes[errorType] = true;
-                                                    }
-                                                }
-                                            }
-
-                                            // Mostrar SweetAlert solo si hay errores para mostrar
-                                            if (errorMessages) {
-                                                Swal.fire({
-                                                    title: 'Errores de Validación',
-                                                    html: errorMessages,
-                                                    icon: 'error'
-                                                });
-                                                window.location.reload();
-                                            }
-                                        } else {
-                                            Swal.fire('Error', 'No se pudo actualizar el servidor', 'error');
-                                            window.location.reload();
-                                        }
+                                        const errorMessages = Object.values(response.errors).flat().join('<br>');
+                                        Swal.fire({
+                                            title: 'Errores de Validación',
+                                            html: errorMessages,
+                                            icon: 'error'
+                                        });
                                     }
-                                },
-                                error: function (xhr, status, error) {
+                                }).catch(() => {
                                     Swal.fire('Error', 'No se pudo actualizar el servidor', 'error');
-                                    window.location.reload();
-                                }
-                            });
-                        } else if (result.isDismissed) {
-                            // El usuario hizo clic en "Cancelar" y no es necesario realizar alguna accion.
+                                });
+                            } else {
+                                Swal.showValidationMessage('Por favor, complete todos los campos correctamente.');
+                            }
                         }
                     });
                 } else {
                     Swal.fire('Error', 'No se pudieron cargar los datos del servidor', 'error');
-                    window.location.reload();
                 }
             },
             error: function () {
                 Swal.fire('Error', 'No se pudo cargar el formulario de edición', 'error');
-                window.location.reload();
             }
         });
     });

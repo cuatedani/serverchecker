@@ -1,8 +1,8 @@
-$(document).ready(function () {
-    $('.btn-add').click(function () {
-        const form = `
+@extends('layouts.app')
+
+@section('content')
             <div class="container">
-                <form id="add-server-form">
+                <form id="add-server-form" method="POST" action="/server/add">
 
                     <!-- Nombre del Servidor -->
                     <div class="form-group">
@@ -73,53 +73,4 @@ $(document).ready(function () {
                     </div>
                 </form>
             </div>
-        `;
-
-        Swal.fire({
-            title: 'Agregar Servidor',
-            html: form,
-            showCancelButton: true,
-            showConfirmButton: true,
-            cancelButtonText: 'Cancelar',
-            confirmButtonText: 'Agregar',
-            customClass: {
-                popup: 'add-sweetalert-popup'
-            },
-            preConfirm: () => {
-                // Obtener el formulario y el botón de submit
-                const formElement = document.getElementById('add-server-form');
-                const submitButton = document.getElementById('submitButton');
-
-                // Hacer clic en el botón de submit para desencadenar la validación
-                submitButton.click();
-
-                // Verificar si el formulario es válido
-                if (formElement.checkValidity()) {
-                    const formData = new FormData(formElement);
-                    var token = $('input[name="_token"]').val();
-                    formData.append('_token', token);
-
-                    // Devolver una promesa con la solicitud AJAX
-                    return $.ajax({
-                        type: 'POST',
-                        url: '/server/add',
-                        data: formData,
-                        dataType: 'json',
-                        processData: false,
-                        contentType: false
-                    }).then((response) => {
-                        Swal.fire('Éxito', 'El servidor se ha añadido correctamente', 'success');
-                        window.location.reload();
-                    }).catch((xhr, status, error) => {
-                        Swal.fire('Error', 'No se pudo actualizar el servidor', 'error');
-                        window.location.reload();
-                    });
-                } else {
-                    // Mostrar mensaje de error si el formulario no es válido
-                    Swal.showValidationMessage('Por favor, complete todos los campos correctamente.');
-                    return false;
-                }
-            }
-        });
-    });
-});
+@endsection
